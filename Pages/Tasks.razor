@@ -1,0 +1,173 @@
+@page "/tasks"
+@inject TaskService TaskService
+
+<!-- Formulário de adição de nova tarefa -->
+<h3 class="text-primary mb-4">Adicionar Nova Tarefa</h3>
+
+<EditForm Model="newTask" OnValidSubmit="HandleAddTask" class="mb-4">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+
+    <!-- Campo de Título -->
+    <div class="form-group mb-3">
+        <label for="taskTitle">Título</label>
+        <InputText id="taskTitle" @bind-Value="newTask.Title" class="form-control" placeholder="Digite o título da tarefa" required />
+    </div>
+
+    <!-- Campo de Descrição -->
+    <div class="form-group mb-3">
+        <label for="taskDescription">Descrição</label>
+        <InputTextArea id="taskDescription" @bind-Value="newTask.Description" class="form-control" placeholder="Digite a descrição da tarefa" rows="3" />
+    </div>
+
+    <!-- Botão para adicionar nova tarefa -->
+    <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+</EditForm>
+
+<!-- Lista de Tarefas -->
+<h3 class="text-secondary mb-4">Lista de Tarefas</h3>
+
+@if (tasks == null || !tasks.Any())
+{
+    <p class="text-muted">Carregando tarefas ou não há tarefas cadastradas.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var task in tasks)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">@task.Title</h5>
+                    <p class="mb-1">@task.Description</p>
+                    <small class="text-muted">Status: @(task.IsCompleted ? "Ok" : "Pendente")</small>
+                </div>
+
+                <span class="badge @((task.IsCompleted) ? "bg-success" : "bg-warning")">
+                    @(task.IsCompleted ? "Concluída" : "Pendente")
+                </span>
+
+                <!-- Exibe o formulário de edição se o usuário estiver editando a tarefa -->
+                @if (editTask != null && editTask.Id == task.Id)
+                {
+                    <div>
+                        <!-- Campo de edição de Título -->
+                        <label for="editTitle">Título</label>
+                        <InputText id="editTitle" @bind-Value="editTask.Title" class="form-control mb-2" />
+
+                        <!-- Campo de edição de Descrição -->
+                        <label for="editDescription">Descrição</label>
+                        <InputTextArea id="editDescription" @bind-Value="editTask.Description" class="form-control mb-2" />
+
+                        <!-- Campo para marcar se a tarefa está concluída -->
+                        <div class="form-check mb-2">
+                            <InputCheckbox id="editIsCompleted" @bind-Value="editTask.IsCompleted" />
+                            <label for="editIsCompleted" class="form-check-label">Concluída</label>
+                        </div>
+
+                        <!-- Botões de ação: Salvar ou Cancelar -->
+                        <button class="btn btn-success me-2" @onclick="() => HandleSaveTask(task.Id)">Salvar</button>
+                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancelar</button>
+                    </div>
+                }
+                else
+                {
+                    <!-- Botões de ação: Editar ou Deletar -->
+                    <div>
+                        <button class="btn btn-warning me-2" @onclick="() => StartEditTask(task)">Editar</button>
+                        <button class="btn btn-danger" @onclick="() => HandleDeleteTask(task.Id)">Deletar</button>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    // Modelos usados para criar e editar tarefas
+    private TaskItemDto newTask = new TaskItemDto(); // Para adicionar uma nova tarefa
+    private TaskItemDto editTask; // Para edição de uma tarefa existente
+    private List<TaskItem> tasks = new List<TaskItem>(); // Lista de tarefas carregadas
+
+    // Método chamado quando a página é carregada
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTasksAsync();
+    }
+
+    // Carrega a lista de tarefas da API
+    private async Task LoadTasksAsync()
+    {
+        try
+        {
+            tasks = await TaskService.GetTasksAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar tarefas: {ex.Message}");
+        }
+    }
+
+    // Inicia o processo de edição da tarefa selecionada
+    private void StartEditTask(TaskItem task)
+    {
+        // Clona a tarefa selecionada para edição
+        editTask = new TaskItemDto
+        {
+            Id = task.Id,
+            Title = task.Title,
+            Description = task.Description,
+            IsCompleted = task.IsCompleted
+        };
+    }
+
+    // Cancela o modo de edição
+    private void CancelEdit()
+    {
+        editTask = null;
+    }
+
+    // Salva as modificações feitas em uma tarefa
+    private async Task HandleSaveTask(int taskId)
+    {
+        try
+        {
+            await TaskService.UpdateTaskAsync(taskId, editTask); // Atualiza a tarefa através da API
+            editTask = null; // Limpa o modo de edição após a atualização
+            await LoadTasksAsync(); // Recarrega as tarefas após a atualização
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao atualizar tarefa: {ex.Message}");
+        }
+    }
+
+    // Adiciona uma nova tarefa
+    private async Task HandleAddTask()
+    {
+        try
+        {
+            await TaskService.AddTaskAsync(newTask); // Envia a nova tarefa para a API
+            newTask = new TaskItemDto(); // Limpa o formulário após o envio
+            await LoadTasksAsync(); // Recarrega as tarefas após a adição
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao adicionar tarefa: {ex.Message}");
+        }
+    }
+
+    // Exclui uma tarefa existente
+    private async Task HandleDeleteTask(int taskId)
+    {
+        try
+        {
+            await TaskService.DeleteTaskAsync(taskId); // Exclui a tarefa da API
+            await LoadTasksAsync(); // Recarrega as tarefas após a exclusão
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao deletar tarefa: {ex.Message}");
+        }
+    }
+}

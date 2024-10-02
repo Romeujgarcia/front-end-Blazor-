@@ -1,0 +1,30 @@
+/* Custom CSS for the register form */
+.form {
+    background-color: #f7f9fc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form .h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.form .input-group-text {
+    background-color: #f0f0f0;
+    border: none;
+}
+
+.form button {
+    background-color: #28a745;
+    border: none;
+    padding: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.form button:hover {
+    background-color: #218838;
+}

@@ -1,0 +1,23 @@
+h1[b-8dtf1jxt4u] {
+    font-weight: bold;
+    color: #343a40;
+}
+
+p.lead[b-8dtf1jxt4u] {
+    color: #6c757d;
+}
+
+.btn-primary[b-8dtf1jxt4u] {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline-primary[b-8dtf1jxt4u] {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.btn-outline-primary:hover[b-8dtf1jxt4u] {
+    background-color: #007bff;
+    color: white;
+}
